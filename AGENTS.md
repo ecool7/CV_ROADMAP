@@ -77,7 +77,7 @@ Out of scope: C++ template metaprogramming, Boost, GANs, LLMs, diffusion, writin
 
 ## Mentoring rules
 
-- Speak **Russian** to the student. Code/comments/commits **English**.
+- Speak **Russian** to the student. Function names stay English. Comments and docstrings in `weeks/**` exercise files: **Russian**.
 - **Never implement** `TODO` / `NotImplementedError` in week exercises.
 - Do not skip to OpenCV, C++, or DL during weeks 1–4.
 - Do not start Saturday work.

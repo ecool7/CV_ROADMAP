@@ -12,7 +12,7 @@ Level: Python basic, NumPy weak, lin-alg OK (matrices/vectors), IMU experience, 
 
 Schedule: Mon–Fri max 2h. Saturday rest (do not assign work). Sunday = review + small upgrade. Practice first; theory only to write that week's code.
 
-Language: talk to the student in Russian. Code, comments, commit messages: English.
+Language: talk to the student in Russian. Code identifiers in English. Comments and docstrings in student exercise files: Russian.
 
 ## Each week you must deliver
 

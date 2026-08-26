@@ -1,6 +1,6 @@
-"""Week 01 Fri — IMU lab (Sunday: add moving average).
+"""Неделя 1, пятница. Лаборатория IMU. В воскресенье добавишь сглаживание.
 
-Run:
+Запуск:
     python weeks/week-01-numpy-imu/src/imu_lab.py
 """
 
@@ -15,45 +15,41 @@ ROOT = Path(__file__).resolve().parent.parent
 CSV_PATH = ROOT / "data" / "synthetic_imu.csv"
 OUT_DIR = ROOT / "outputs"
 
-# Start here. Tune on Friday if still/moving looks wrong.
+# Порог «едет / стоит». В пятницу можно подкрутить, если маска кривая.
 MOVE_THRESHOLD = 0.3
 STILL_WINDOW_S = 1.0
 FS_HZ = 100.0
-# Sunday: set this to 10 and plot raw vs smoothed magnitude.
+# Воскресенье: поставь 10 и нарисуй сырой и сглаженный модуль вместе.
 SMOOTH_WINDOW = 1
 
 
 def load_imu(path: Path) -> tuple[np.ndarray, np.ndarray]:
-    # TODO: copy from 03_visualize.py
+    """Прочитай CSV. Можно взять ту же реализацию, что в 03_visualize.py."""
     raise NotImplementedError
 
 
 def magnitude(accel: np.ndarray) -> np.ndarray:
-    # TODO
+    """Модуль ускорения на каждый отсчёт."""
     raise NotImplementedError
 
 
 def estimate_g(mag: np.ndarray, fs: float, still_s: float) -> float:
-    """Median |a| on the first still_s seconds (the generator starts at rest)."""
-    # TODO
+    """Оцени g как медиану модуля на первых still_s секундах (генератор стартует из покоя)."""
     raise NotImplementedError
 
 
 def moving_mask(mag: np.ndarray, g: float, threshold: float) -> np.ndarray:
-    """True where the device is moving: abs(mag - g) > threshold. dtype=bool."""
-    # TODO
+    """True там, где прибор едет: |модуль − g| больше порога. Тип bool."""
     raise NotImplementedError
 
 
 def moving_average(x: np.ndarray, window: int) -> np.ndarray:
-    """Uniform moving average, same length as x.
+    """Скользящее среднее той же длины, что x. Задание на воскресенье.
 
-    Hint: kernel = np.ones(window) / window
-          np.convolve(x, kernel, mode='same')
+    В пятницу можно оставить return x.copy(), чтобы скрипт уже бежал.
     """
     if window <= 1:
         return x.copy()
-    # TODO (Sunday). Friday: leave as `return x.copy()` so the script already runs.
     return x.copy()
 
 
@@ -67,16 +63,16 @@ def plot_lab(
     path.parent.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
 
-    axes[0].plot(t, mag, label="|a| raw", linewidth=1)
+    axes[0].plot(t, mag, label="|a| сырой", linewidth=1)
     if not np.allclose(mag, mag_smooth):
-        axes[0].plot(t, mag_smooth, label="|a| smooth", linewidth=1.5)
+        axes[0].plot(t, mag_smooth, label="|a| сглаженный", linewidth=1.5)
     axes[0].legend()
-    axes[0].set_ylabel("|a| (m/s^2)")
-    axes[0].set_title("IMU lab: still vs moving")
+    axes[0].set_ylabel("|a| (м/с²)")
+    axes[0].set_title("Лаборатория IMU: стоит / едет")
 
     axes[1].plot(t, moving.astype(float), drawstyle="steps-post")
-    axes[1].set_ylabel("moving")
-    axes[1].set_xlabel("t (s)")
+    axes[1].set_ylabel("едет")
+    axes[1].set_xlabel("t (с)")
     axes[1].set_ylim(-0.1, 1.1)
 
     fig.tight_layout()
@@ -92,15 +88,15 @@ def main() -> None:
     mag_smooth = moving_average(mag, SMOOTH_WINDOW)
 
     moving_s = float(moving.mean() * (t[-1] - t[0]))
-    print(f"g_est     = {g:.3f} m/s^2")
+    print(f"g_est     = {g:.3f} м/с²")
     print(f"mag mean  = {mag.mean():.3f}")
     print(f"mag std   = {mag.std():.3f}")
-    print(f"moving    = {moving_s:.2f} s  ({100.0 * moving.mean():.1f}% of record)")
+    print(f"moving    = {moving_s:.2f} с  ({100.0 * moving.mean():.1f}% записи)")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out_name = "imu_lab_smoothed.png" if SMOOTH_WINDOW > 1 else "imu_lab.png"
     plot_lab(t, mag, mag_smooth, moving, OUT_DIR / out_name)
-    print(f"wrote {OUT_DIR / out_name}")
+    print(f"записал {OUT_DIR / out_name}")
 
 
 if __name__ == "__main__":

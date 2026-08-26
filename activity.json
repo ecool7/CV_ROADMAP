@@ -3,8 +3,8 @@
   "weeks": 42,
   "days": {
     "2026-08-26": {
-      "hours": 1.0,
-      "note": "venv + numpy env OK, started week 01"
+      "hours": 2.0,
+      "note": "01_arrays ALL PASSED"
     }
   }
 }

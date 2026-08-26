@@ -1,7 +1,7 @@
-"""Generate a tiny synthetic IMU CSV for week 01.
+"""Учебный CSV с IMU на неделю 1.
 
-This is not a physically perfect IMU. It is a teaching signal:
-still → accel → coast → brake → still, plus gravity and noise.
+Это не идеальная физика, а понятный сигнал:
+стоит → разгон → едет → тормоз → стоит, плюс тяжесть и шум.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ NOISE_STD = 0.04
 SEED = 7
 
 SEGMENTS = (
-    # (t_start, t_end, body_ax_mps2)  — extra specific force on X, besides gravity
+    # (начало с, конец с, добавка к ускорению по X, кроме тяжести)
     (0.0, 2.0, 0.0),
     (2.0, 4.0, 1.5),
     (4.0, 6.0, 0.0),
@@ -30,7 +30,7 @@ def synthetic_accel(t: np.ndarray) -> np.ndarray:
     ax = np.zeros_like(t)
     for t0, t1, value in SEGMENTS:
         ax[(t >= t0) & (t < t1)] = value
-    # last sample of last segment
+    # последний отсчёт последнего участка
     ax[t >= SEGMENTS[-1][0]] = SEGMENTS[-1][2]
 
     ay = np.zeros_like(t)

@@ -1,4 +1,4 @@
-"""Week 01 Mon — check that the environment is ready."""
+"""Проверка, что Python, NumPy и matplotlib установлены."""
 
 from __future__ import annotations
 
