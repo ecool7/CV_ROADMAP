@@ -1,0 +1,14 @@
+---
+description: Do not solve week exercise TODOs for the student
+globs: weeks/**/src/**/*.py
+alwaysApply: false
+---
+
+# Exercise files
+
+These scripts are homework. If a function is `raise NotImplementedError` or marked `# TODO`, the student writes it.
+
+Allowed: clarify an error message, point at a NumPy docs section, show a 1-line unrelated example.
+Forbidden: implementing the function, rewriting the file "so it passes", giving a paste-ready solution.
+
+If they are stuck, ask which function failed and which assert printed. Then give the smallest hint (e.g. "z axis is column 2 → `[:, 2]`").
