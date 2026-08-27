@@ -9,17 +9,6 @@ Camera + IMU (sensor fusion) · C++ · Deep Learning
 
 **Streak 2** · longest 2 · active days **2** · Saturday rest does not break the streak
 
-<!-- WEEK:START -->
-### This week
-
-![This week](docs/streak-week.svg)
-
-| Mon | Tue | Wed | Thu | Fri | Sat | Sun |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| ⬜ | ⬜ | 🟩 | 🟩 | ⬜ | · | ⬜ |
-|   |   | 2h | 1.5h |   | rest |   |
-<!-- WEEK:END -->
-
 Log a day: `python tools/streak.py log --hours 1.5 --note "what I did"`
 <!-- STREAK:END -->
 
@@ -133,15 +122,3 @@ Later weeks get their own folder in `weeks/`. Do not rewrite old weeks unless Su
 ## Current week
 
 Start here: [weeks/week-01-numpy-imu/README.md](weeks/week-01-numpy-imu/README.md)
-
-<!-- WEEK:START -->
-### This week
-
-![This week](docs/streak-week.svg)
-
-| Mon | Tue | Wed | Thu | Fri | Sat | Sun |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| ⬜ | ⬜ | 🟩 | 🟩 | ⬜ | · | ⬜ |
-|   |   | 2h | 1.5h |   | rest |   |
-<!-- WEEK:END -->
-

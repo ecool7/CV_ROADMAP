@@ -17,13 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ACTIVITY_PATH = ROOT / "activity.json"
 SVG_PATH = ROOT / "docs" / "streak.svg"
-WEEK_SVG_PATH = ROOT / "docs" / "streak-week.svg"
 README_PATH = ROOT / "README.md"
 
 MARKER_START = "<!-- STREAK:START -->"
 MARKER_END = "<!-- STREAK:END -->"
-WEEK_START = "<!-- WEEK:START -->"
-WEEK_END = "<!-- WEEK:END -->"
 
 LEVEL_FILL = ["#ebedf0", "#9be9a9", "#40c463", "#30a14e", "#216e39"]
 CELL = 11
@@ -197,89 +194,6 @@ def build_svg(data: dict, now: date) -> str:
     )
 
 
-def build_week_svg(data: dict, now: date) -> str:
-    days_map = data.get("days", {})
-    monday = monday_on_or_before(now)
-    names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    size = 28
-    gap = 10
-    top = 22
-    width = 8 + 7 * (size + gap)
-    height = top + size + 22
-    parts = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-        f'viewBox="0 0 {width} {height}" role="img" aria-label="This week">'
-    ]
-    for i, name in enumerate(names):
-        d = monday + timedelta(days=i)
-        rec = days_map.get(d.isoformat(), {})
-        hours = float(rec.get("hours", 0) or 0)
-        fill = LEVEL_FILL[hours_to_level(hours)]
-        if not is_scheduled(d) and hours <= 0:
-            fill = "#f6f8fa"
-        x = 8 + i * (size + gap)
-        stroke = "#0969da" if d == now else "#d0d7de"
-        sw = 2 if d == now else 1
-        parts.append(
-            f'<text x="{x + size / 2}" y="14" text-anchor="middle" fill="#57606a" '
-            f'font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">{name}</text>'
-        )
-        parts.append(
-            f'<rect x="{x}" y="{top}" width="{size}" height="{size}" rx="4" '
-            f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}">'
-            f"<title>{d.isoformat()} · {hours:g}h</title></rect>"
-        )
-        label = f"{hours:g}h" if hours else ("rest" if not is_scheduled(d) else "")
-        if label:
-            parts.append(
-                f'<text x="{x + size / 2}" y="{top + size + 16}" text-anchor="middle" '
-                f'fill="#1f2328" font-size="10" '
-                f'font-family="Segoe UI, Helvetica, Arial, sans-serif">{label}</text>'
-            )
-    parts.append("</svg>\n")
-    return "\n".join(parts)
-
-
-def week_markdown_row(data: dict, now: date) -> str:
-    days_map = data.get("days", {})
-    monday = monday_on_or_before(now)
-    names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    marks = []
-    notes = []
-    for i in range(7):
-        d = monday + timedelta(days=i)
-        rec = days_map.get(d.isoformat(), {})
-        hours = float(rec.get("hours", 0) or 0)
-        if hours > 0:
-            marks.append("🟩")
-            notes.append(f"{hours:g}h")
-        elif not is_scheduled(d):
-            marks.append("·")
-            notes.append("rest")
-        else:
-            marks.append("⬜")
-            notes.append(" ")
-    header = "| " + " | ".join(names) + " |"
-    sep = "| " + " | ".join([":---:"] * 7) + " |"
-    row = "| " + " | ".join(marks) + " |"
-    sub = "| " + " | ".join(notes) + " |"
-    return "\n".join([header, sep, row, sub])
-
-
-def week_block(data: dict, now: date) -> str:
-    return "\n".join(
-        [
-            WEEK_START,
-            "### This week",
-            "",
-            "![This week](docs/streak-week.svg)",
-            "",
-            week_markdown_row(data, now),
-            WEEK_END,
-        ]
-    )
-
-
 def readme_block(data: dict, now: date) -> str:
     start = parse_iso(data["start"])
     current, longest, total = streak_stats(data.get("days", {}), start, now)
@@ -291,39 +205,34 @@ def readme_block(data: dict, now: date) -> str:
             f"**Streak {current}** · longest {longest} · active days **{total}**"
             " · Saturday rest does not break the streak",
             "",
-            week_block(data, now),
-            "",
             'Log a day: `python tools/streak.py log --hours 1.5 --note "what I did"`',
             MARKER_END,
         ]
     )
 
 
-def _replace_marked(text: str, start: str, end: str, block: str) -> str:
-    if start not in text or end not in text:
-        raise SystemExit(f"README.md is missing {start}")
-    before = text.split(start, 1)[0]
-    after = text.split(end, 1)[1]
-    return before.rstrip("\n") + "\n\n" + block.strip() + "\n\n" + after.lstrip("\n")
-
-
 def patch_readme(data: dict, now: date) -> None:
     text = README_PATH.read_text(encoding="utf-8")
-    text = _replace_marked(text, MARKER_START, MARKER_END, readme_block(data, now))
-    head, sep, tail = text.partition(MARKER_END)
-    if WEEK_START in tail:
-        tail = _replace_marked(tail, WEEK_START, WEEK_END, week_block(data, now))
-        text = head + sep + tail
-    README_PATH.write_text(text, encoding="utf-8")
+    if MARKER_START not in text or MARKER_END not in text:
+        raise SystemExit("README.md is missing STREAK markers")
+    before = text.split(MARKER_START, 1)[0]
+    after = text.split(MARKER_END, 1)[1]
+    if "<!-- WEEK:START -->" in after:
+        pre, _, rest = after.partition("<!-- WEEK:START -->")
+        _, _, post = rest.partition("<!-- WEEK:END -->")
+        after = pre.rstrip() + "\n" + post.lstrip("\n")
+    README_PATH.write_text(
+        before.rstrip("\n") + "\n\n" + readme_block(data, now).strip() + "\n\n" + after.lstrip("\n"),
+        encoding="utf-8",
+    )
 
 
 def cmd_render(data: dict, now: date) -> None:
     SVG_PATH.parent.mkdir(parents=True, exist_ok=True)
     SVG_PATH.write_text(build_svg(data, now), encoding="utf-8")
-    WEEK_SVG_PATH.write_text(build_week_svg(data, now), encoding="utf-8")
     patch_readme(data, now)
     current, longest, total = streak_stats(data.get("days", {}), parse_iso(data["start"]), now)
-    print(f"wrote {SVG_PATH.relative_to(ROOT)} and {WEEK_SVG_PATH.relative_to(ROOT)}")
+    print(f"wrote {SVG_PATH.relative_to(ROOT)}")
     print(f"streak={current} longest={longest} active={total}")
 
 
