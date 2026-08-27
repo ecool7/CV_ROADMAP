@@ -56,6 +56,11 @@ def monday_on_or_before(d: date) -> date:
     return d - timedelta(days=d.weekday())
 
 
+def sunday_on_or_before(d: date) -> date:
+    # GitHub weeks start on Sunday. datetime.weekday(): Mon=0 … Sun=6
+    return d - timedelta(days=(d.weekday() + 1) % 7)
+
+
 def is_scheduled(d: date) -> bool:
     return d.weekday() != SATURDAY
 
@@ -117,13 +122,13 @@ def streak_stats(days: dict, start: date, now: date) -> tuple[int, int, int]:
 
 
 def build_svg(data: dict, now: date) -> str:
-    start = parse_iso(data["start"])
-    grid_start = monday_on_or_before(start)
+    """Past 53 weeks, newest column on the right — same layout as GitHub."""
     n_weeks = 53
     days_map = data.get("days", {})
+    grid_start = sunday_on_or_before(now) - timedelta(weeks=n_weeks - 1)
 
     width = LEFT + n_weeks * (CELL + GAP) + 4
-    height = TOP + 7 * (CELL + GAP) + 8
+    height = TOP + 7 * (CELL + GAP) + 22
 
     rects = []
     month_labels: list[tuple[int, str]] = []
@@ -131,8 +136,12 @@ def build_svg(data: dict, now: date) -> str:
     month_names = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
 
     for w in range(n_weeks):
-        for dow in range(7):
+        week_has_day = False
+        for dow in range(7):  # 0 = Sunday
             d = grid_start + timedelta(weeks=w, days=dow)
+            if d > now:
+                continue
+            week_has_day = True
             x = LEFT + w * (CELL + GAP)
             y = TOP + dow * (CELL + GAP)
             rec = days_map.get(d.isoformat(), {})
@@ -144,14 +153,12 @@ def build_svg(data: dict, now: date) -> str:
                 title += f" · {hours:g}h"
             if note:
                 title += f" · {note}"
-            if not is_scheduled(d) and hours <= 0:
-                fill = "#f6f8fa"
             rects.append(
                 f'<rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" rx="2" '
                 f'fill="{fill}"><title>{title}</title></rect>'
             )
         first = grid_start + timedelta(weeks=w)
-        if w == 0 or (first.month != last_month and first.day <= 7):
+        if week_has_day and first.month != last_month and first.day <= 13:
             month_labels.append((LEFT + w * (CELL + GAP), month_names[first.month - 1]))
             last_month = first.month
 
@@ -160,17 +167,33 @@ def build_svg(data: dict, now: date) -> str:
         f'font-family="Segoe UI, Helvetica, Arial, sans-serif">{name}</text>'
         for x, name in month_labels
     )
-    day_names = {0: "Mon", 2: "Wed", 4: "Fri"}
+    day_names = {1: "Mon", 3: "Wed", 5: "Fri"}
     labels_day = "\n".join(
         f'<text x="0" y="{TOP + dow * (CELL + GAP) + 9}" fill="#57606a" font-size="9" '
         f'font-family="Segoe UI, Helvetica, Arial, sans-serif">{name}</text>'
         for dow, name in day_names.items()
     )
+    legend_y = TOP + 7 * (CELL + GAP) + 14
+    legend_x = width - 5 * (CELL + GAP) - 48
+    legend_bits = [
+        f'<text x="{legend_x - 28}" y="{legend_y + 9}" fill="#57606a" font-size="9" '
+        f'font-family="Segoe UI, Helvetica, Arial, sans-serif">Less</text>'
+    ]
+    for i, fill in enumerate(LEVEL_FILL):
+        lx = legend_x + i * (CELL + GAP)
+        legend_bits.append(
+            f'<rect x="{lx}" y="{legend_y}" width="{CELL}" height="{CELL}" rx="2" fill="{fill}"/>'
+        )
+    legend_bits.append(
+        f'<text x="{legend_x + 5 * (CELL + GAP) + 4}" y="{legend_y + 9}" fill="#57606a" font-size="9" '
+        f'font-family="Segoe UI, Helvetica, Arial, sans-serif">More</text>'
+    )
     body = "\n".join(rects)
+    legend = "\n".join(legend_bits)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" role="img" aria-label="Activity heatmap">\n'
-        f"{labels_month}\n{labels_day}\n{body}\n</svg>\n"
+        f"{labels_month}\n{labels_day}\n{body}\n{legend}\n</svg>\n"
     )
 
 
