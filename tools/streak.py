@@ -17,19 +17,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ACTIVITY_PATH = ROOT / "activity.json"
 SVG_PATH = ROOT / "docs" / "streak.svg"
+WEEK_SVG_PATH = ROOT / "docs" / "streak-week.svg"
 README_PATH = ROOT / "README.md"
 
 MARKER_START = "<!-- STREAK:START -->"
 MARKER_END = "<!-- STREAK:END -->"
+WEEK_START = "<!-- WEEK:START -->"
+WEEK_END = "<!-- WEEK:END -->"
 
-# GitHub-like greens (readable on GitHub light README)
 LEVEL_FILL = ["#ebedf0", "#9be9a9", "#40c463", "#30a14e", "#216e39"]
 CELL = 11
 GAP = 3
 LEFT = 28
 TOP = 18
-
-SATURDAY = 5  # datetime.weekday(): Mon=0 ... Sat=5 Sun=6
+SATURDAY = 5
 
 
 def today() -> date:
@@ -56,7 +57,6 @@ def monday_on_or_before(d: date) -> date:
 
 
 def is_scheduled(d: date) -> bool:
-    """Mon–Fri + Sunday. Saturday is planned rest and does not break a streak."""
     return d.weekday() != SATURDAY
 
 
@@ -84,8 +84,6 @@ def scheduled_days_between(start: date, end: date) -> list[date]:
 
 def streak_stats(days: dict, start: date, now: date) -> tuple[int, int, int]:
     logged = {parse_iso(k) for k, v in days.items() if v.get("hours", 0) > 0}
-    scheduled = scheduled_days_between(start, now)
-    total = sum(1 for d in scheduled if d in logged)
 
     def streak_ending_at(end: date) -> int:
         n = 0
@@ -100,7 +98,6 @@ def streak_stats(days: dict, start: date, now: date) -> tuple[int, int, int]:
             d -= timedelta(days=1)
         return n
 
-    # Grace: today not logged yet does not kill the streak until the day ends.
     end = now if now in logged or not is_scheduled(now) else now - timedelta(days=1)
     current = streak_ending_at(end)
 
@@ -115,6 +112,7 @@ def streak_stats(days: dict, start: date, now: date) -> tuple[int, int, int]:
             else:
                 run = 0
         d += timedelta(days=1)
+    total = sum(1 for d in scheduled_days_between(start, now) if d in logged)
     return current, longest, total
 
 
@@ -133,14 +131,13 @@ def build_svg(data: dict, now: date) -> str:
     month_names = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
 
     for w in range(n_weeks):
-        for dow in range(7):  # 0 = Monday
+        for dow in range(7):
             d = grid_start + timedelta(weeks=w, days=dow)
             x = LEFT + w * (CELL + GAP)
             y = TOP + dow * (CELL + GAP)
             rec = days_map.get(d.isoformat(), {})
             hours = float(rec.get("hours", 0) or 0)
-            level = hours_to_level(hours)
-            fill = LEVEL_FILL[level]
+            fill = LEVEL_FILL[hours_to_level(hours)]
             note = rec.get("note", "")
             title = d.isoformat()
             if hours:
@@ -177,6 +174,89 @@ def build_svg(data: dict, now: date) -> str:
     )
 
 
+def build_week_svg(data: dict, now: date) -> str:
+    days_map = data.get("days", {})
+    monday = monday_on_or_before(now)
+    names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    size = 28
+    gap = 10
+    top = 22
+    width = 8 + 7 * (size + gap)
+    height = top + size + 22
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}" role="img" aria-label="This week">'
+    ]
+    for i, name in enumerate(names):
+        d = monday + timedelta(days=i)
+        rec = days_map.get(d.isoformat(), {})
+        hours = float(rec.get("hours", 0) or 0)
+        fill = LEVEL_FILL[hours_to_level(hours)]
+        if not is_scheduled(d) and hours <= 0:
+            fill = "#f6f8fa"
+        x = 8 + i * (size + gap)
+        stroke = "#0969da" if d == now else "#d0d7de"
+        sw = 2 if d == now else 1
+        parts.append(
+            f'<text x="{x + size / 2}" y="14" text-anchor="middle" fill="#57606a" '
+            f'font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">{name}</text>'
+        )
+        parts.append(
+            f'<rect x="{x}" y="{top}" width="{size}" height="{size}" rx="4" '
+            f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}">'
+            f"<title>{d.isoformat()} · {hours:g}h</title></rect>"
+        )
+        label = f"{hours:g}h" if hours else ("rest" if not is_scheduled(d) else "")
+        if label:
+            parts.append(
+                f'<text x="{x + size / 2}" y="{top + size + 16}" text-anchor="middle" '
+                f'fill="#1f2328" font-size="10" '
+                f'font-family="Segoe UI, Helvetica, Arial, sans-serif">{label}</text>'
+            )
+    parts.append("</svg>\n")
+    return "\n".join(parts)
+
+
+def week_markdown_row(data: dict, now: date) -> str:
+    days_map = data.get("days", {})
+    monday = monday_on_or_before(now)
+    names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    marks = []
+    notes = []
+    for i in range(7):
+        d = monday + timedelta(days=i)
+        rec = days_map.get(d.isoformat(), {})
+        hours = float(rec.get("hours", 0) or 0)
+        if hours > 0:
+            marks.append("🟩")
+            notes.append(f"{hours:g}h")
+        elif not is_scheduled(d):
+            marks.append("·")
+            notes.append("rest")
+        else:
+            marks.append("⬜")
+            notes.append(" ")
+    header = "| " + " | ".join(names) + " |"
+    sep = "| " + " | ".join([":---:"] * 7) + " |"
+    row = "| " + " | ".join(marks) + " |"
+    sub = "| " + " | ".join(notes) + " |"
+    return "\n".join([header, sep, row, sub])
+
+
+def week_block(data: dict, now: date) -> str:
+    return "\n".join(
+        [
+            WEEK_START,
+            "### This week",
+            "",
+            "![This week](docs/streak-week.svg)",
+            "",
+            week_markdown_row(data, now),
+            WEEK_END,
+        ]
+    )
+
+
 def readme_block(data: dict, now: date) -> str:
     start = parse_iso(data["start"])
     current, longest, total = streak_stats(data.get("days", {}), start, now)
@@ -188,32 +268,39 @@ def readme_block(data: dict, now: date) -> str:
             f"**Streak {current}** · longest {longest} · active days **{total}**"
             " · Saturday rest does not break the streak",
             "",
+            week_block(data, now),
+            "",
             'Log a day: `python tools/streak.py log --hours 1.5 --note "what I did"`',
             MARKER_END,
-            "",
         ]
     )
 
 
-def patch_readme(block: str) -> None:
+def _replace_marked(text: str, start: str, end: str, block: str) -> str:
+    if start not in text or end not in text:
+        raise SystemExit(f"README.md is missing {start}")
+    before = text.split(start, 1)[0]
+    after = text.split(end, 1)[1]
+    return before.rstrip("\n") + "\n\n" + block.strip() + "\n\n" + after.lstrip("\n")
+
+
+def patch_readme(data: dict, now: date) -> None:
     text = README_PATH.read_text(encoding="utf-8")
-    if MARKER_START in text and MARKER_END in text:
-        before = text.split(MARKER_START, 1)[0]
-        after = text.split(MARKER_END, 1)[1]
-        README_PATH.write_text(
-            before.rstrip("\n") + "\n\n" + block.strip() + "\n\n" + after.lstrip("\n"),
-            encoding="utf-8",
-        )
-        return
-    raise SystemExit("README.md is missing STREAK markers")
+    text = _replace_marked(text, MARKER_START, MARKER_END, readme_block(data, now))
+    head, sep, tail = text.partition(MARKER_END)
+    if WEEK_START in tail:
+        tail = _replace_marked(tail, WEEK_START, WEEK_END, week_block(data, now))
+        text = head + sep + tail
+    README_PATH.write_text(text, encoding="utf-8")
 
 
 def cmd_render(data: dict, now: date) -> None:
     SVG_PATH.parent.mkdir(parents=True, exist_ok=True)
     SVG_PATH.write_text(build_svg(data, now), encoding="utf-8")
-    patch_readme(readme_block(data, now))
+    WEEK_SVG_PATH.write_text(build_week_svg(data, now), encoding="utf-8")
+    patch_readme(data, now)
     current, longest, total = streak_stats(data.get("days", {}), parse_iso(data["start"]), now)
-    print(f"wrote {SVG_PATH.relative_to(ROOT)}")
+    print(f"wrote {SVG_PATH.relative_to(ROOT)} and {WEEK_SVG_PATH.relative_to(ROOT)}")
     print(f"streak={current} longest={longest} active={total}")
 
 

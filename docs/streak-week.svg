@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="274" height="72" viewBox="0 0 274 72" role="img" aria-label="This week">
+<text x="22.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Mon</text>
+<rect x="8" y="22" width="28" height="28" rx="4" fill="#ebedf0" stroke="#d0d7de" stroke-width="1"><title>2026-08-24 · 0h</title></rect>
+<text x="60.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Tue</text>
+<rect x="46" y="22" width="28" height="28" rx="4" fill="#ebedf0" stroke="#d0d7de" stroke-width="1"><title>2026-08-25 · 0h</title></rect>
+<text x="98.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Wed</text>
+<rect x="84" y="22" width="28" height="28" rx="4" fill="#216e39" stroke="#d0d7de" stroke-width="1"><title>2026-08-26 · 2h</title></rect>
+<text x="98.0" y="66" text-anchor="middle" fill="#1f2328" font-size="10" font-family="Segoe UI, Helvetica, Arial, sans-serif">2h</text>
+<text x="136.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Thu</text>
+<rect x="122" y="22" width="28" height="28" rx="4" fill="#30a14e" stroke="#0969da" stroke-width="2"><title>2026-08-27 · 1.5h</title></rect>
+<text x="136.0" y="66" text-anchor="middle" fill="#1f2328" font-size="10" font-family="Segoe UI, Helvetica, Arial, sans-serif">1.5h</text>
+<text x="174.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Fri</text>
+<rect x="160" y="22" width="28" height="28" rx="4" fill="#ebedf0" stroke="#d0d7de" stroke-width="1"><title>2026-08-28 · 0h</title></rect>
+<text x="212.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Sat</text>
+<rect x="198" y="22" width="28" height="28" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"><title>2026-08-29 · 0h</title></rect>
+<text x="212.0" y="66" text-anchor="middle" fill="#1f2328" font-size="10" font-family="Segoe UI, Helvetica, Arial, sans-serif">rest</text>
+<text x="250.0" y="14" text-anchor="middle" fill="#57606a" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">Sun</text>
+<rect x="236" y="22" width="28" height="28" rx="4" fill="#ebedf0" stroke="#d0d7de" stroke-width="1"><title>2026-08-30 · 0h</title></rect>
+</svg>
