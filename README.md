@@ -7,7 +7,7 @@ Camera + IMU (sensor fusion) · C++ · Deep Learning
 <!-- STREAK:START -->
 ![Activity](docs/streak.svg)
 
-**Streak 1** · longest 1 · active days **1** · Saturday rest does not break the streak
+**Streak 2** · longest 2 · active days **2** · Saturday rest does not break the streak
 
 Log a day: `python tools/streak.py log --hours 1.5 --note "what I did"`
 <!-- STREAK:END -->

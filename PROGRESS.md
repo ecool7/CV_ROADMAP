@@ -13,7 +13,7 @@ Started Wednesday 26.08 (short week).
 | Day | Task | Done |
 |-----|------|------|
 | Wed | venv + `check_env.py` + `01_arrays.py` ALL PASSED | [x] |
-| Thu | `02_linalg.py` ALL PASSED | [ ] |
+| Thu | `02_linalg.py` ALL PASSED | [x] |
 | Fri | `imu_raw.png` + `imu_lab.png` | [ ] |
 | Sun | notes + moving average + this log + push | [ ] |
 

@@ -12,32 +12,36 @@ import numpy as np
 def magnitude(accel: np.ndarray) -> np.ndarray:
     """Длина каждого вектора ускорения (норма строки).
 
+
     На вход таблица N×3, на выход один столбец длины N.
     """
-    raise NotImplementedError
+    return np.linalg.norm(accel,axis=1)
 
 
 def demean_per_axis(accel: np.ndarray) -> np.ndarray:
     """Из каждого столбца вычти его среднее. Размер тот же N×3."""
-    raise NotImplementedError
+    sr = np.mean(accel,axis = 0)
+    return accel - sr
 
 
 def rotate_vector(R: np.ndarray, v: np.ndarray) -> np.ndarray:
     """Поверни один вектор: v' = R v. v длины 3, R размера 3×3."""
-    raise NotImplementedError
+    return R@v
 
 
 def rotate_batch(R: np.ndarray, accel: np.ndarray) -> np.ndarray:
     """Поверни каждый отсчёт той же матрицей R. Таблица N×3 → N×3."""
-    raise NotImplementedError
+    return accel @R.T 
 
 
 def rotation_about_z(deg: float) -> np.ndarray:
     """Матрица поворота вокруг оси +Z. Угол в градусах, размер 3×3.
     Правило правой руки.
     """
-    raise NotImplementedError
 
+    cos_deg, sin_deg = np.cos(np.radians(deg)), np.sin(np.radians(deg)),
+    matrix = np.array([[cos_deg,-sin_deg,0],[sin_deg,cos_deg,0],[0,0,1]])
+    return matrix
 
 def main() -> None:
     accel = np.array(

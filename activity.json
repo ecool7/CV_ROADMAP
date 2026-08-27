@@ -5,6 +5,10 @@
     "2026-08-26": {
       "hours": 2.0,
       "note": "01_arrays ALL PASSED"
+    },
+    "2026-08-27": {
+      "hours": 1.5,
+      "note": "02_linalg ALL PASSED"
     }
   }
 }
